@@ -1,17 +1,21 @@
 import axios from 'axios';
 
-async function filterItems(searchQuery) {
+async function filterItems(searchQuery, page, limit) {
+  const offset = (page - 1) * limit;
   const searchResponse = await axios.get(`https://api.mercadolibre.com/sites/MLA/search?q=${searchQuery}`);
-  const sellerIds = searchResponse.data.results.slice(0, 4).map(item => item.seller.id);
-  console.log(sellerIds)
+  
+
+  const paginatedResults = searchResponse.data.results.slice(offset, offset + limit);
+  const sellerIds = paginatedResults.map(item => item.seller.id);
+  
   const locations = await Promise.all(sellerIds.map(getLocation));
   const formattedData = {
     author: {
       name: 'MercadoLibre', 
       lastname: '',
     },
-    categories: await getCategories(searchResponse.data.results[0].category_id), // Llamar a una función separada para obtener las categorías
-    items: searchResponse.data.results.slice(0, 4).map((item, index) => ({
+    categories: await getCategories(searchResponse.data.results[0].category_id),
+    items: paginatedResults.map((item, index) => ({
       id: item.id,
       title: item.title,
       location: locations[index],
@@ -23,7 +27,14 @@ async function filterItems(searchQuery) {
       picture: item.thumbnail,
       condition: item.condition,
       free_shipping: item.shipping.free_shipping,
+      available_quantity: item.available_quantity,
     })),
+    pagination: {
+      total: searchResponse.data.paging.total,
+      limit: limit,
+      page: page,
+      pages: Math.ceil(searchResponse.data.paging.total / limit),
+    },
   };
   return formattedData;
 }
@@ -31,7 +42,7 @@ async function filterItems(searchQuery) {
 async function filterItemDetails(itemId) {
   const itemResponse = await axios.get(`https://api.mercadolibre.com/items/${itemId}`);
   const descriptionResponse = await axios.get(`https://api.mercadolibre.com/items/${itemResponse.data.id}/description`);
-  console.log(descriptionResponse.data)
+  
   const formattedData = {
     author: {
       name: 'MercadoLibre', 
@@ -49,7 +60,7 @@ async function filterItemDetails(itemId) {
       picture: itemResponse.data.pictures[0].secure_url,
       condition: itemResponse.data.condition,
       free_shipping: itemResponse.data.shipping.free_shipping,
-      sold_quantity: itemResponse.data.sold_quantity,
+      sold_quantity: itemResponse.data.initial_quantity,
       description: descriptionResponse.data.plain_text,
     },
   };
@@ -64,9 +75,10 @@ async function getCategories(categoryId) {
   }
   return categoryNames;
 }
+
 async function getLocation(sellerId) {
   const sellerResponse = await axios.get(`https://api.mercadolibre.com/users/${sellerId}`);
   return sellerResponse.data.address.city;
 }
 
-export { filterItems, filterItemDetails }; 
+export { filterItems, filterItemDetails };
