@@ -17,15 +17,15 @@ async function filterItems(searchQuery, page, limit) {
         const sellerResponse = await axios.get(`https://api.mercadolibre.com/users/${sellerId}`);
         return sellerResponse.data.address.city;
       } catch (error) {
-        console.error(`Error getting location for seller ${sellerId}`, error);
-        return 'Unknown'; 
+        console.error(`Error al obtener la ubicación del vendedor ${sellerId}`, error);
+        return 'Desconocido'; 
       }
     }));
 
     const formattedData = {
       author: {
-        name: 'MercadoLibre',
-        lastname: '',
+        name: 'Enzo',
+        lastname: 'Romero',
       },
       categories: await getCategories(searchResponse.data.results[0].category_id),
       items: paginatedResults.map((item, index) => ({
@@ -52,7 +52,7 @@ async function filterItems(searchQuery, page, limit) {
 
     return formattedData;
   } catch (error) {
-    console.error('Error fetching search results:', error);
+    console.error('Error al obtener resultados de búsqueda:', error);
     throw error; 
   }
 }
@@ -63,8 +63,8 @@ async function filterItemDetails(itemId) {
 
   const formattedData = {
     author: {
-      name: 'MercadoLibre',
-      lastname: '',
+      name: 'Enzo',
+      lastname: 'Romero',
     },
     categories: await getCategories(itemResponse.data.category_id),
     item: {
