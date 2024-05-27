@@ -22,7 +22,7 @@ El propósito de este middleware es facilitar la interacción con la API de Merc
 
 ## Instalación
 
-1. Clona este repositorio: `git clone <URL_DEL_REPOSITORIO>`
+1. Clona este repositorio: `git clone https://github.com/enzoromerov/Middleware.git`
 2. Instala las dependencias: `npm install`
 3. Inicia el servidor: `npm start`
 
